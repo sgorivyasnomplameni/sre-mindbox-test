@@ -39,7 +39,7 @@ spec:
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 20  под считается живым только после старта и первого прохождения readiness
+          initialDelaySeconds: 20 # под считается живым только после старта и первого прохождения readiness
           periodSeconds: 10
       # распределение подов по зонам для отказоустойчивости    
       topologySpreadConstraints:
