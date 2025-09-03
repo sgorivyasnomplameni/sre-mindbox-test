@@ -1,0 +1,11 @@
+# pdb для отказоустойчивости
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: webapp-pdb
+  namespace: default
+spec:
+  minAvailable: 4 # чтобы выдерживать дневной пик даже при обновлениях и сбоев нод
+  selector:
+    matchLabels:
+      app: webapp

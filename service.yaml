@@ -1,0 +1,14 @@
+# сервис для доступа к приложению
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  namespace: default
+spec:
+  selector:
+    app: webapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP # внутренний сервис без прокси или ингресса

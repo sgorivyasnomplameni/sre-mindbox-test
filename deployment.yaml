@@ -1,0 +1,51 @@
+# deployment веб-приложения
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: default
+  labels:
+    app: webapp
+spec:
+  replicas: 1 # стартуем с минимального количества реплик, чтобы экономить ресурсы ночью
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        image: webapp-test:latest 
+        imagePullPolicy: IfNotPresent # используем локальный образ, экономим время при повторных деплоях
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m" # минимальный стартовый запрос CPU, чтобы под успевал стартовать и не тянул лишнее ночью
+            memory: "128Mi" # памяти в объёме, необходимом приложению по условию
+          limits:
+            cpu: "1" # максимум на пиковых нагрузках, чтобы HPA мог масштабировать поды при высокой нагрузке
+            memory: "128Mi"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10 # учитываем инициализацию приложения 5-10 секунд
+          periodSeconds: 5 # проверяем готовность каждые 5 секунд
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 20  под считается живым только после старта и первого прохождения readiness
+          periodSeconds: 10
+      # распределение подов по зонам для отказоустойчивости    
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone # балансируем поды между зонами
+        whenUnsatisfiable: ScheduleAnyway # если не получится идеально размещаем где возможно
+        labelSelector:
+          matchLabels:
+            app: webapp
